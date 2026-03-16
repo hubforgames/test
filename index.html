@@ -1,142 +1,207 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Oracle of Mumbai | Buffett-Style Indian Stock Screener</title>
+    <title>The Alchemist’s Ledger | 2026 Pro Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:wght@400;600&display=swap');
-        
-        :root {
-            --omaha-cream: #f9f7f2;
-            --omaha-ink: #1a1a1a;
-            --omaha-accent: #7c2d12; /* Deep Brick Red */
-        }
-
-        body { 
-            font-family: 'Source Sans Pro', sans-serif; 
-            background-color: var(--omaha-cream); 
-            color: var(--omaha-ink);
-        }
-        
-        h1, h2, h3, .serif { 
-            font-family: 'Libre Baskerville', serif; 
-        }
-
-        .stock-card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            transition: all 0.3s ease;
-        }
-
-        .stock-card:hover {
-            border-color: var(--omaha-accent);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .metric-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #6b7280;
-        }
-
-        .stamp {
-            border: 2px solid var(--omaha-accent);
-            color: var(--omaha-accent);
-            transform: rotate(-5deg);
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            font-weight: bold;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lora:ital,wght@0,400;1,400&family=Inter:wght@300;600;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #0b0f19; color: #f1f5f9; scroll-behavior: smooth; padding-bottom: 120px; }
+        .ledger-title { font-family: 'Cinzel', serif; }
+        .serif { font-family: 'Lora', serif; }
+        .investor-tab { cursor: pointer; transition: all 0.3s; border-left: 3px solid transparent; color: #94a3b8; }
+        .investor-tab:hover { background: #1e293b; color: #fff; }
+        .investor-tab.active { border-left-color: #eab308; background: #1e293b; color: #eab308; font-weight: bold; }
+        .stock-card { background: #161e2e; border: 1px solid #1f2937; transition: all 0.3s; position: relative; }
+        .stock-card:hover { transform: translateY(-5px); border-color: #eab308; box-shadow: 0 10px 40px -10px rgba(234, 179, 8, 0.3); }
+        .cycle-alert { border: 2px solid #ef4444 !important; background: linear-gradient(145deg, #161e2e, #2d1616) !important; }
+        .prophecy-footer { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(15px); border-top: 1px solid #334155; z-index: 100; }
+        .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
-<body class="p-4 md:p-12">
+<body class="min-h-screen">
 
-    <nav class="max-w-5xl mx-auto border-b-2 border-black pb-4 mb-12 flex justify-between items-end">
+    <div class="bg-yellow-500 text-black p-2 text-center text-[10px] font-black tracking-widest uppercase flex items-center justify-center gap-6">
+        <span id="nifty-status"><span class="pulse">●</span> NIFTY 50: SYNCING...</span>
+        <span id="market-time" class="hidden md:inline"></span>
+    </div>
+
+    <header class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0 z-50 shadow-2xl">
         <div>
-            <h1 class="text-4xl font-bold uppercase tracking-tighter">The Oracle of Mumbai</h1>
-            <p class="text-sm italic mt-1">Applying Berkshire Hathaway Principles to the NSE & BSE</p>
+            <h1 class="ledger-title text-2xl tracking-tighter text-yellow-500">The Alchemist’s Ledger</h1>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest">Quantitative Legend Screener • 2026 Edition</p>
         </div>
-        <div class="text-right hidden md:block">
-            <p class="text-xs font-bold uppercase">Volume I � Edition 2026</p>
-            <p class="text-xs text-gray-500">Market Status: <span class="text-red-700">Frothy</span></p>
-        </div>
-    </nav>
+        <button onclick="refreshData()" class="bg-yellow-600 hover:bg-yellow-500 text-white text-[10px] px-6 py-2 rounded-full font-bold transition-all shadow-lg active:scale-95">
+            SYNC TERMINAL
+        </button>
+    </header>
 
-    <main class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12">
-        
-        <div class="lg:col-span-2 space-y-10">
-            <h2 class="text-2xl font-bold border-b pb-2 mb-6">Current "Wonderful" Holdings</h2>
+    <div class="flex flex-col md:flex-row">
+        <nav class="w-full md:w-72 border-r border-slate-800 h-auto md:min-h-screen sticky top-20 p-4 space-y-1 bg-slate-900">
+            <p class="text-[10px] uppercase text-slate-500 font-black mb-4 px-2 tracking-widest">The Ten Pillars</p>
+            <div id="nav-tabs" class="space-y-1"></div>
+            
+            <div id="sectogram-container" class="mt-8 p-4 bg-slate-800/50 rounded-xl border border-slate-700 hidden">
+                <p class="text-[9px] uppercase text-slate-500 font-black mb-3 tracking-widest text-center">Legend's Sectogram</p>
+                <div id="sectogram-bars" class="space-y-2"></div>
+            </div>
+        </nav>
 
-            <div class="stock-card p-8 relative overflow-hidden">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-3xl font-bold">Titan Company Ltd.</h3>
-                        <p class="text-sm text-gray-500 italic">Sector: Consumer Discretionary</p>
-                    </div>
-                    <div class="stamp">Wide Moat</div>
-                </div>
-                <p class="text-gray-700 leading-relaxed mb-6">
-                    "I don't need to be a jewelry expert to understand that a bride in India wants a brand she can trust with her life savings. Titan isn't selling gold; they are selling 'Certainty.' With a consistent ROE above 30%, this is a compounding machine."
-                </p>
-                <div class="grid grid-cols-3 gap-4 border-t pt-6">
-                    <div><p class="metric-label">10-Yr Avg ROE</p><p class="text-xl font-bold">31.4%</p></div>
-                    <div><p class="metric-label">Debt/Equity</p><p class="text-xl font-bold">0.22</p></div>
-                    <div><p class="metric-label">Verdict</p><p class="text-sm font-semibold text-green-700">HOLD FOREVER</p></div>
+        <main class="flex-1 p-6 md:p-12">
+            <div id="content-area">
+                <div class="flex flex-col items-center justify-center h-64 text-slate-500 italic space-y-4">
+                    <div class="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p>Initiating Alchemical Extraction...</p>
                 </div>
             </div>
+        </main>
+    </div>
 
-            <div class="stock-card p-8">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-3xl font-bold">Asian Paints</h3>
-                        <p class="text-sm text-gray-500 italic">Sector: Materials/Chemicals</p>
-                    </div>
-                    <div class="stamp">Supply Chain King</div>
+    <footer class="prophecy-footer p-6 px-10 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex flex-col items-center md:items-start">
+            <span class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">Portfolio Resonance (Green%)</span>
+            <div class="flex items-center gap-4">
+                <div class="w-48 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                    <div id="strength-bar" class="h-full bg-yellow-500 transition-all duration-1000" style="width: 0%"></div>
                 </div>
-                <p class="text-gray-700 leading-relaxed mb-6">
-                    "Their supply chain is their moat. They deliver to thousands of dealers multiple times a day. If you tried to compete with them, you'd spend billions and still fail. It's a boring business, and boring is beautiful."
-                </p>
-                <div class="grid grid-cols-3 gap-4 border-t pt-6">
-                    <div><p class="metric-label">10-Yr Avg ROE</p><p class="text-xl font-bold">27.8%</p></div>
-                    <div><p class="metric-label">FCF Yield</p><p class="text-xl font-bold">3.2%</p></div>
-                    <div><p class="metric-label">Verdict</p><p class="text-sm font-semibold text-orange-700">WAIT FOR DIP</p></div>
-                </div>
+                <span id="strength-percent" class="text-yellow-500 font-mono font-bold text-xl tracking-tighter">0%</span>
             </div>
         </div>
-
-        <aside class="space-y-8">
-            <div class="bg-stone-800 text-stone-100 p-6 rounded-sm shadow-xl">
-                <h4 class="serif italic text-xl mb-4">The Warren Filter</h4>
-                <ul class="text-sm space-y-4">
-                    <li class="flex gap-3"><span>1.</span> <span>Is the business simple? Can a "sandwich" run it?</span></li>
-                    <li class="flex gap-3"><span>2.</span> <span>Does it have a moat? (Brand, Toll Bridge, or Low Cost)</span></li>
-                    <li class="flex gap-3"><span>3.</span> <span>Is management rational with capital?</span></li>
-                    <li class="flex gap-3"><span>4.</span> <span>Can I buy it at a 20% margin of safety?</span></li>
-                </ul>
-            </div>
-
-            <div class="border-2 border-stone-300 p-6 italic text-gray-600">
-                <p class="mb-4">"The stock market is a highly efficient mechanism for transferring money from the impatient to the patient."</p>
-                <p class="text-right font-bold">� W.E.B.</p>
-            </div>
-
-            <div class="p-6 border-t-2 border-black">
-                <h4 class="font-bold uppercase text-xs mb-2">Editor's Note</h4>
-                <p class="text-xs leading-tight text-gray-500">
-                    This screen utilizes 2026 fiscal data. We exclude all tech companies with negative cash flow and any business requiring high leverage.
-                </p>
-            </div>
-        </aside>
-    </main>
-
-    <footer class="max-w-5xl mx-auto mt-20 pt-8 border-t border-gray-300 text-center text-xs text-gray-400">
-        <p>� 2026 Omaha In India. Not Financial Advice. No Lunch with Warren Included.</p>
+        <div class="text-center md:text-right">
+            <span class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Oracle Verdict</span>
+            <p id="oracle-verdict" class="text-white font-bold italic text-lg leading-tight mt-1 italic">Waiting for connection...</p>
+        </div>
     </footer>
 
+    <script>
+        const LEGENDS = {
+            buffett: { name: "Warren Buffett", quote: "Wonderful companies at fair prices.", rule: "High ROE & Consumer Moat", tickers: ["TITAN.NS", "NESTLEIND.NS", "HINDUNILVR.NS"], sectors: { "Consumer": 70, "Retail": 30 } },
+            rakesh: { name: "Rakesh Jhunjhunwala", quote: "The trend is your friend.", rule: "Growth & Operating Leverage", tickers: ["TATAMOTORS.NS", "METROBRAND.NS", "CANBK.NS"], sectors: { "Auto": 40, "Retail": 30, "Banking": 30 } },
+            damani: { name: "Radhakishan Damani", quote: "The best business is a cash business.", rule: "Negative Working Capital", tickers: ["DMART.NS", "VBL.NS", "TRENT.NS"], sectors: { "Retail": 100 } },
+            munger: { name: "Charlie Munger", quote: "Invert, always invert.", rule: "Durable Distribution Moats", tickers: ["ASIANPAINT.NS", "TCS.NS", "PIDILITIND.NS"], sectors: { "Chemicals": 60, "IT": 40 } },
+            lynch: { name: "Peter Lynch", quote: "Invest in what you know.", rule: "PEG < 1.0 & Sales Growth", tickers: ["POLYCAB.NS", "KEI.NS", "BEL.NS"], sectors: { "Capital Goods": 60, "Defense": 40 } },
+            graham: { name: "Benjamin Graham", quote: "Buy values, not emotions.", rule: "Below Graham Number", tickers: ["ONGC.NS", "COALINDIA.NS", "GAIL.NS"], sectors: { "Energy": 70, "Utilities": 30 } },
+            marks: { name: "Howard Marks", quote: "You can't predict, but you can prepare.", rule: "Risk Control & Cycles", tickers: ["HDFCBANK.NS", "RELIANCE.NS", "KOTAKBANK.NS"], sectors: { "Banking": 60, "Conglomerate": 40 } },
+            green: { name: "Green Alchemist", quote: "The 2026 Energy Pivot.", rule: "Clean Energy Capex", tickers: ["ADANIGREEN.NS", "TATAPOWER.NS", "IREDA.NS"], sectors: { "Renewables": 100 } }
+        };
+
+        let currentKey = 'buffett';
+        let marketData = {};
+
+        function initNav() {
+            const nav = document.getElementById('nav-tabs');
+            nav.innerHTML = '';
+            Object.keys(LEGENDS).forEach((key, index) => {
+                nav.innerHTML += `<div onclick="showCategory('${key}')" id="tab-${key}" class="investor-tab p-3 rounded-md uppercase text-[11px] tracking-wider">${index + 1}. ${LEGENDS[key].name}</div>`;
+            });
+        }
+
+        async function fetchPrices() {
+            const tickers = [...new Set(Object.values(LEGENDS).flatMap(l => l.tickers))];
+            try {
+                const res = await axios.get(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${tickers.join(',')},^NSEI`);
+                const quotes = res.data.quoteResponse.result;
+                quotes.forEach(q => {
+                    marketData[q.symbol] = { price: q.regularMarketPrice, change: q.regularMarketChangePercent, name: q.shortName };
+                });
+                
+                const nifty = marketData['^NSEI'];
+                if (nifty) {
+                    document.getElementById('nifty-status').innerHTML = `NIFTY 50: <span class="${nifty.change >= 0 ? 'text-green-900' : 'text-red-900'} font-black">${nifty.price.toFixed(2)} (${nifty.change.toFixed(2)}%)</span>`;
+                }
+                showCategory(currentKey);
+            } catch (e) {
+                console.error("Alchemist Data Error:", e);
+            }
+        }
+
+        function showCategory(key) {
+            currentKey = key;
+            document.querySelectorAll('.investor-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + key)?.classList.add('active');
+
+            const data = LEGENDS[key];
+            let posCount = 0;
+            
+            let html = `
+                <div class="mb-12 animate-in fade-in duration-500">
+                    <h2 class="ledger-title text-5xl text-white mb-2 uppercase tracking-tighter">${data.name}</h2>
+                    <p class="serif italic text-yellow-500 text-xl mb-4 opacity-80">"${data.quote}"</p>
+                    <div class="inline-block bg-slate-800 px-4 py-1 rounded border border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        Commandment: ${data.rule}
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            `;
+
+            data.tickers.forEach(symbol => {
+                const live = marketData[symbol] || { price: 0, change: 0, name: '...' };
+                if (live.change > 0) posCount++;
+                const isPositive = live.change >= 0;
+                const isStressed = live.change <= -3.0;
+                const cleanTicker = symbol.split('.')[0];
+
+                html += `
+                    <div class="stock-card p-8 rounded-2xl ${isStressed ? 'cycle-alert' : ''}">
+                        ${isStressed ? '<div class="absolute top-0 left-0 right-0 bg-red-600 text-white text-[9px] font-black py-1 text-center uppercase tracking-widest">Market Cycle Stress Detected</div>' : ''}
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-3xl font-black text-white tracking-tighter">${cleanTicker}</h3>
+                                <p class="text-[10px] text-slate-500 font-mono mt-1">${live.name}</p>
+                            </div>
+                            <div class="text-right text-2xl font-mono ${isPositive ? 'text-green-400' : 'text-red-400'} font-bold">
+                                ${isPositive ? '▲' : '▼'}${Math.abs(live.change).toFixed(2)}%
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-end mt-8">
+                            <div>
+                                <span class="text-slate-500 block text-[10px] uppercase font-black mb-1 tracking-widest">Live Valuation</span>
+                                <span class="text-yellow-500 font-mono text-4xl">₹${live.price.toLocaleString('en-IN')}</span>
+                            </div>
+                            <a href="https://www.screener.in/company/${cleanTicker}/" target="_blank" class="bg-slate-800 hover:bg-yellow-600 border border-slate-700 hover:border-yellow-600 text-white text-[10px] font-bold px-5 py-3 rounded-lg transition-all uppercase tracking-widest shadow-xl">Analyze</a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('content-area').innerHTML = html + `</div>`;
+            renderSectogram(data.sectors);
+            updateResonance(posCount, data.tickers.length);
+        }
+
+        function renderSectogram(sectors) {
+            const container = document.getElementById('sectogram-container');
+            const bars = document.getElementById('sectogram-bars');
+            container.classList.remove('hidden');
+            bars.innerHTML = '';
+            Object.entries(sectors).forEach(([name, percent]) => {
+                bars.innerHTML += `
+                    <div>
+                        <div class="flex justify-between text-[10px] mb-1 font-bold text-slate-300"><span>${name}</span><span>${percent}%</span></div>
+                        <div class="w-full h-1 bg-slate-900 rounded-full"><div class="h-full bg-yellow-600 rounded-full" style="width: ${percent}%"></div></div>
+                    </div>
+                `;
+            });
+        }
+
+        function updateResonance(pos, total) {
+            const res = Math.round((pos / total) * 100);
+            document.getElementById('strength-bar').style.width = res + "%";
+            document.getElementById('strength-percent').innerText = res + "%";
+            const v = document.getElementById('oracle-verdict');
+            if (res >= 70) { v.innerText = "ALCHEMICAL HARMONY: High convergence in bull signals."; v.className = "text-green-400 font-bold italic text-lg"; }
+            else if (res >= 40) { v.innerText = "LEAD TO GOLD: Market in transition. Watch consolidation."; v.className = "text-yellow-500 font-bold italic text-lg"; }
+            else { v.innerText = "DROSS DETECTED: Cycle stress is purging the weak."; v.className = "text-red-500 font-bold italic text-lg"; }
+        }
+
+        function refreshData() { fetchPrices(); }
+        setInterval(() => { document.getElementById('market-time').innerText = "• " + new Date().toLocaleTimeString(); }, 1000);
+        initNav();
+        fetchPrices();
+        setInterval(fetchPrices, 60000);
+    </script>
 </body>
 </html>
