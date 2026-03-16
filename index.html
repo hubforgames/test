@@ -78,11 +78,11 @@
 
     <script>
         const LEGENDS = {
-            buffett: { name: "Warren Buffett", quote: "Wonderful companies at fair prices.", rule: "High ROE & Consumer Moat", tickers: ["TITAN.NS", "NESTLEIND.NS", "HINDUNILVR.NS"], sectors: { "Consumer": 70, "Retail": 30 } },
+            buffett: { name: "Warren Buffett", quote: "Wonderful companies at fair prices.", rule: "ROE > 15% & Wide Moat", tickers: ["TITAN.NS", "NESTLEIND.NS", "HINDUNILVR.NS"], sectors: { "Consumer": 70, "Retail": 30 } },
             rakesh: { name: "Rakesh Jhunjhunwala", quote: "The trend is your friend.", rule: "Growth & Operating Leverage", tickers: ["TATAMOTORS.NS", "METROBRAND.NS", "CANBK.NS"], sectors: { "Auto": 40, "Retail": 30, "Banking": 30 } },
-            damani: { name: "Radhakishan Damani", quote: "The best business is a cash business.", rule: "Negative Working Capital", tickers: ["DMART.NS", "VBL.NS", "TRENT.NS"], sectors: { "Retail": 100 } },
-            munger: { name: "Charlie Munger", quote: "Invert, always invert.", rule: "Durable Distribution Moats", tickers: ["ASIANPAINT.NS", "TCS.NS", "PIDILITIND.NS"], sectors: { "Chemicals": 60, "IT": 40 } },
-            lynch: { name: "Peter Lynch", quote: "Invest in what you know.", rule: "PEG < 1.0 & Sales Growth", tickers: ["POLYCAB.NS", "KEI.NS", "BEL.NS"], sectors: { "Capital Goods": 60, "Defense": 40 } },
+            damani: { name: "Radhakishan Damani", quote: "Focus on the business, not the noise.", rule: "Negative Working Capital", tickers: ["DMART.NS", "VBL.NS", "TRENT.NS"], sectors: { "Retail": 100 } },
+            munger: { name: "Charlie Munger", quote: "Invert, always invert.", rule: "Pricing Power & Simplicity", tickers: ["ASIANPAINT.NS", "TCS.NS", "PIDILITIND.NS"], sectors: { "Chemicals": 60, "IT": 40 } },
+            lynch: { name: "Peter Lynch", quote: "Invest in what you know.", rule: "PEG < 1.0", tickers: ["POLYCAB.NS", "KEI.NS", "BEL.NS"], sectors: { "Capital Goods": 60, "Defense": 40 } },
             graham: { name: "Benjamin Graham", quote: "Buy values, not emotions.", rule: "Below Graham Number", tickers: ["ONGC.NS", "COALINDIA.NS", "GAIL.NS"], sectors: { "Energy": 70, "Utilities": 30 } },
             marks: { name: "Howard Marks", quote: "You can't predict, but you can prepare.", rule: "Risk Control & Cycles", tickers: ["HDFCBANK.NS", "RELIANCE.NS", "KOTAKBANK.NS"], sectors: { "Banking": 60, "Conglomerate": 40 } },
             green: { name: "Green Alchemist", quote: "The 2026 Energy Pivot.", rule: "Clean Energy Capex", tickers: ["ADANIGREEN.NS", "TATAPOWER.NS", "IREDA.NS"], sectors: { "Renewables": 100 } }
@@ -101,107 +101,20 @@
 
         async function fetchPrices() {
             const tickers = [...new Set(Object.values(LEGENDS).flatMap(l => l.tickers))];
+            const tickerString = tickers.join(',') + ',^NSEI';
+            
+            // FIXED: Using corsproxy.io to bypass GitHub Pages CORS restrictions
+            const proxy = "https://corsproxy.io/?";
+            const target = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${tickerString}`;
+            
             try {
-                const res = await axios.get(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${tickers.join(',')},^NSEI`);
+                const res = await axios.get(proxy + encodeURIComponent(target));
                 const quotes = res.data.quoteResponse.result;
+
+                if (!quotes) throw new Error("API returned null");
+
                 quotes.forEach(q => {
-                    marketData[q.symbol] = { price: q.regularMarketPrice, change: q.regularMarketChangePercent, name: q.shortName };
-                });
-                
-                const nifty = marketData['^NSEI'];
-                if (nifty) {
-                    document.getElementById('nifty-status').innerHTML = `NIFTY 50: <span class="${nifty.change >= 0 ? 'text-green-900' : 'text-red-900'} font-black">${nifty.price.toFixed(2)} (${nifty.change.toFixed(2)}%)</span>`;
-                }
-                showCategory(currentKey);
-            } catch (e) {
-                console.error("Alchemist Data Error:", e);
-            }
-        }
-
-        function showCategory(key) {
-            currentKey = key;
-            document.querySelectorAll('.investor-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab-' + key)?.classList.add('active');
-
-            const data = LEGENDS[key];
-            let posCount = 0;
-            
-            let html = `
-                <div class="mb-12 animate-in fade-in duration-500">
-                    <h2 class="ledger-title text-5xl text-white mb-2 uppercase tracking-tighter">${data.name}</h2>
-                    <p class="serif italic text-yellow-500 text-xl mb-4 opacity-80">"${data.quote}"</p>
-                    <div class="inline-block bg-slate-800 px-4 py-1 rounded border border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        Commandment: ${data.rule}
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            `;
-
-            data.tickers.forEach(symbol => {
-                const live = marketData[symbol] || { price: 0, change: 0, name: '...' };
-                if (live.change > 0) posCount++;
-                const isPositive = live.change >= 0;
-                const isStressed = live.change <= -3.0;
-                const cleanTicker = symbol.split('.')[0];
-
-                html += `
-                    <div class="stock-card p-8 rounded-2xl ${isStressed ? 'cycle-alert' : ''}">
-                        ${isStressed ? '<div class="absolute top-0 left-0 right-0 bg-red-600 text-white text-[9px] font-black py-1 text-center uppercase tracking-widest">Market Cycle Stress Detected</div>' : ''}
-                        <div class="flex justify-between items-start mb-6">
-                            <div>
-                                <h3 class="text-3xl font-black text-white tracking-tighter">${cleanTicker}</h3>
-                                <p class="text-[10px] text-slate-500 font-mono mt-1">${live.name}</p>
-                            </div>
-                            <div class="text-right text-2xl font-mono ${isPositive ? 'text-green-400' : 'text-red-400'} font-bold">
-                                ${isPositive ? '▲' : '▼'}${Math.abs(live.change).toFixed(2)}%
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-end mt-8">
-                            <div>
-                                <span class="text-slate-500 block text-[10px] uppercase font-black mb-1 tracking-widest">Live Valuation</span>
-                                <span class="text-yellow-500 font-mono text-4xl">₹${live.price.toLocaleString('en-IN')}</span>
-                            </div>
-                            <a href="https://www.screener.in/company/${cleanTicker}/" target="_blank" class="bg-slate-800 hover:bg-yellow-600 border border-slate-700 hover:border-yellow-600 text-white text-[10px] font-bold px-5 py-3 rounded-lg transition-all uppercase tracking-widest shadow-xl">Analyze</a>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('content-area').innerHTML = html + `</div>`;
-            renderSectogram(data.sectors);
-            updateResonance(posCount, data.tickers.length);
-        }
-
-        function renderSectogram(sectors) {
-            const container = document.getElementById('sectogram-container');
-            const bars = document.getElementById('sectogram-bars');
-            container.classList.remove('hidden');
-            bars.innerHTML = '';
-            Object.entries(sectors).forEach(([name, percent]) => {
-                bars.innerHTML += `
-                    <div>
-                        <div class="flex justify-between text-[10px] mb-1 font-bold text-slate-300"><span>${name}</span><span>${percent}%</span></div>
-                        <div class="w-full h-1 bg-slate-900 rounded-full"><div class="h-full bg-yellow-600 rounded-full" style="width: ${percent}%"></div></div>
-                    </div>
-                `;
-            });
-        }
-
-        function updateResonance(pos, total) {
-            const res = Math.round((pos / total) * 100);
-            document.getElementById('strength-bar').style.width = res + "%";
-            document.getElementById('strength-percent').innerText = res + "%";
-            const v = document.getElementById('oracle-verdict');
-            if (res >= 70) { v.innerText = "ALCHEMICAL HARMONY: High convergence in bull signals."; v.className = "text-green-400 font-bold italic text-lg"; }
-            else if (res >= 40) { v.innerText = "LEAD TO GOLD: Market in transition. Watch consolidation."; v.className = "text-yellow-500 font-bold italic text-lg"; }
-            else { v.innerText = "DROSS DETECTED: Cycle stress is purging the weak."; v.className = "text-red-500 font-bold italic text-lg"; }
-        }
-
-        function refreshData() { fetchPrices(); }
-        setInterval(() => { document.getElementById('market-time').innerText = "• " + new Date().toLocaleTimeString(); }, 1000);
-        initNav();
-        fetchPrices();
-        setInterval(fetchPrices, 60000);
-    </script>
-</body>
-</html>
+                    marketData[q.symbol] = { 
+                        price: q.regularMarketPrice, 
+                        change: q.regularMarketChangePercent, 
+                        name: q
