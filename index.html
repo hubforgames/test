@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Oracle of Mumbai | Buffett-Style Indian Stock Screener</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:wght@400;600&display=swap');
+        
+        :root {
+            --omaha-cream: #f9f7f2;
+            --omaha-ink: #1a1a1a;
+            --omaha-accent: #7c2d12; /* Deep Brick Red */
+        }
+
+        body { 
+            font-family: 'Source Sans Pro', sans-serif; 
+            background-color: var(--omaha-cream); 
+            color: var(--omaha-ink);
+        }
+        
+        h1, h2, h3, .serif { 
+            font-family: 'Libre Baskerville', serif; 
+        }
+
+        .stock-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .stock-card:hover {
+            border-color: var(--omaha-accent);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+        }
+
+        .stamp {
+            border: 2px solid var(--omaha-accent);
+            color: var(--omaha-accent);
+            transform: rotate(-5deg);
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-12">
+
+    <nav class="max-w-5xl mx-auto border-b-2 border-black pb-4 mb-12 flex justify-between items-end">
+        <div>
+            <h1 class="text-4xl font-bold uppercase tracking-tighter">The Oracle of Mumbai</h1>
+            <p class="text-sm italic mt-1">Applying Berkshire Hathaway Principles to the NSE & BSE</p>
+        </div>
+        <div class="text-right hidden md:block">
+            <p class="text-xs font-bold uppercase">Volume I • Edition 2026</p>
+            <p class="text-xs text-gray-500">Market Status: <span class="text-red-700">Frothy</span></p>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12">
+        
+        <div class="lg:col-span-2 space-y-10">
+            <h2 class="text-2xl font-bold border-b pb-2 mb-6">Current "Wonderful" Holdings</h2>
+
+            <div class="stock-card p-8 relative overflow-hidden">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-3xl font-bold">Titan Company Ltd.</h3>
+                        <p class="text-sm text-gray-500 italic">Sector: Consumer Discretionary</p>
+                    </div>
+                    <div class="stamp">Wide Moat</div>
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-6">
+                    "I don't need to be a jewelry expert to understand that a bride in India wants a brand she can trust with her life savings. Titan isn't selling gold; they are selling 'Certainty.' With a consistent ROE above 30%, this is a compounding machine."
+                </p>
+                <div class="grid grid-cols-3 gap-4 border-t pt-6">
+                    <div><p class="metric-label">10-Yr Avg ROE</p><p class="text-xl font-bold">31.4%</p></div>
+                    <div><p class="metric-label">Debt/Equity</p><p class="text-xl font-bold">0.22</p></div>
+                    <div><p class="metric-label">Verdict</p><p class="text-sm font-semibold text-green-700">HOLD FOREVER</p></div>
+                </div>
+            </div>
+
+            <div class="stock-card p-8">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-3xl font-bold">Asian Paints</h3>
+                        <p class="text-sm text-gray-500 italic">Sector: Materials/Chemicals</p>
+                    </div>
+                    <div class="stamp">Supply Chain King</div>
+                </div>
+                <p class="text-gray-700 leading-relaxed mb-6">
+                    "Their supply chain is their moat. They deliver to thousands of dealers multiple times a day. If you tried to compete with them, you'd spend billions and still fail. It's a boring business, and boring is beautiful."
+                </p>
+                <div class="grid grid-cols-3 gap-4 border-t pt-6">
+                    <div><p class="metric-label">10-Yr Avg ROE</p><p class="text-xl font-bold">27.8%</p></div>
+                    <div><p class="metric-label">FCF Yield</p><p class="text-xl font-bold">3.2%</p></div>
+                    <div><p class="metric-label">Verdict</p><p class="text-sm font-semibold text-orange-700">WAIT FOR DIP</p></div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="space-y-8">
+            <div class="bg-stone-800 text-stone-100 p-6 rounded-sm shadow-xl">
+                <h4 class="serif italic text-xl mb-4">The Warren Filter</h4>
+                <ul class="text-sm space-y-4">
+                    <li class="flex gap-3"><span>1.</span> <span>Is the business simple? Can a "sandwich" run it?</span></li>
+                    <li class="flex gap-3"><span>2.</span> <span>Does it have a moat? (Brand, Toll Bridge, or Low Cost)</span></li>
+                    <li class="flex gap-3"><span>3.</span> <span>Is management rational with capital?</span></li>
+                    <li class="flex gap-3"><span>4.</span> <span>Can I buy it at a 20% margin of safety?</span></li>
+                </ul>
+            </div>
+
+            <div class="border-2 border-stone-300 p-6 italic text-gray-600">
+                <p class="mb-4">"The stock market is a highly efficient mechanism for transferring money from the impatient to the patient."</p>
+                <p class="text-right font-bold">— W.E.B.</p>
+            </div>
+
+            <div class="p-6 border-t-2 border-black">
+                <h4 class="font-bold uppercase text-xs mb-2">Editor's Note</h4>
+                <p class="text-xs leading-tight text-gray-500">
+                    This screen utilizes 2026 fiscal data. We exclude all tech companies with negative cash flow and any business requiring high leverage.
+                </p>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="max-w-5xl mx-auto mt-20 pt-8 border-t border-gray-300 text-center text-xs text-gray-400">
+        <p>© 2026 Omaha In India. Not Financial Advice. No Lunch with Warren Included.</p>
+    </footer>
+
+</body>
+</html>
